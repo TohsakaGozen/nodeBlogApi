@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--    文档标题-->
+    <title>博客开发笔记</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+</head>
+<body>
+<style>
+    body {padding: 0 10px;}
+</style>
+<!--插入主题样式-->
+<style></style>
+<!--插入marked转换后的html-->
+<div class="markdown-body"><h1 id="tokblog开发说明">TokBlog开发说明</h1>
+<h4 id="1promise解决回调地狱">1.promise解决回调地狱</h4>
+<p>一种是利用<code>then((value)=&gt;{})</code>函数的第一个参数(第二个参数是rejecte的)直接获取promise内<code>resolved</code>.
+promise内部直接return即可代表resolved状态，rejecte则需要<code>return Promise.rejecte(new Error(&#39;xxx&#39;)))</code>返回的值</p>
+<p>第二种是利用<code>async</code>与<code>await</code>联合使用，async代表异步函数，能够用await的只能是异步函数，所以要在使用await的函数外加上async使之变为异步，不影响整体同步执行。因为await能够阻塞一个promise，只有被添加的promise变为resolve，await后面的语句才能够继续向下执行，若为rejecte，则会一直阻塞一下，通常会配合<code>try``catch</code>联合使用</p>
+<h4 id="2获取父组件的dom元素">2.获取父组件的dom元素</h4>
+<p>给父组件添加<code>ref</code>，再在子组件中调<code>this.$parent.$refs.xxx</code>即可获取到父组件的ref，从而调用dom节点</p>
+<h4 id="3关于实现图片动态加载">3.关于实现图片动态加载</h4>
+<p>由于图片标签的<code>src</code>中引入的图片应该为图片的本身路径（相对路径或者绝对路径），而 vue 项目通过 webpack 的 devServer 运行之后，默认的 vue-cli 配置下，图片会被打包成 name.hash 的图片名，在这种情况下，如果我们使用固定的 字符串路径则无法找到该图片，url-loader无法解析图片路径，执行<code>npm run dev</code>或者<code>npm run build</code>之后导致路径没有被加工所以需要使用 <code>require</code> 方法来返回图片的编译路径,所以如果想要实现动态加载大量图片，需要图片在<code>created</code>的时候require处理后再push到需要渲染到页面的data数组里。注意：<code>require</code>里所需的参数不能为变量，只能是一段路径，所以不能用变量的方式处理，所以需要将参数分割处理，先获取到所需加载图片的<code>name</code>(我是根据后端接口获取)，再将图片的地址放在<code>name</code>前面，将图片格式接再<code>name</code>后面(所以需要大量渲染的图片应该是统一格式)，具体如：</p>
+<pre><code>for (let i in result) {
+    result[i] = require(&quot;../../&quot; + result[i] + &quot;.jpg&quot;)
+    }
+</code></pre>
+<h4 id="4关于无限加载瀑布流">4.关于无限加载瀑布流</h4>
+<p>目前使用的是网上找的代码，自己根据想实现的效果进行修改，变成了我的嘿嘿（不要脸
+但如果不需要实现滚轮到底懒加载的话可以使用：给需要使用的图片添加一个盒子包裹，再在需要瀑布流的容器中添加<code>flex</code>，并设置固定的<code>height</code>，主轴为<code>colum</code>并设置允许换行，便可以简单的实现瀑布流，但这种瀑布流不能够实现无限滚动懒加载，因此适合图片数量少的情况，具体代码如下：</p>
+<pre><code>&lt;template&gt;
+&lt;div :style=&quot;{ height: scrollerHeight }&quot; class=&quot;scrollBox&quot; ref=&quot;cont&quot;&gt;
+    &lt;div
+      class=&quot;item&quot;
+      v-for=&quot;(image, index) in showImage&quot;
+      ref=&quot;water&quot;
+      :key=&quot;index&quot;
+    &gt;
+      &lt;img :src=&quot;image&quot; alt=&quot;&quot; /&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&lt;style&gt; 
+  .scrollBox {
+  display: flex;
+  flex-direction: column;
+  height: 130rem;
+  width: 100%;
+  flex-wrap: wrap;
+  padding: 2rem;
+}
+.scrollBox ul {
+  position: relative;
+  box-sizing: border-box;
+  padding: 2px;
+  counter-increment: itemCount;
+}
+.item::after {
+  position: absolute;
+  height: 30px;
+  line-height: 30px;
+  width: 30px;
+  z-index: -1;
+  text-align: center;
+  background-color: #000;
+  color: #fff;
+  top: 10px;
+  left: 10px;
+  content: counter(itemCount);
+}
+.scrollBox img {
+  width: 29rem;
+  position: relative;
+  z-index: -1;
+  display: block;
+  margin: 0.4rem;
+  border-radius: 5px;
+}
+&lt;/style&gt; 
+</code></pre>
+</div>
+</body>
+</html>

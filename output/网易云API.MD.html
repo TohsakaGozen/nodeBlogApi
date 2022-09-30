@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--    文档标题-->
+    <title>网易云API.MD</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+</head>
+<body>
+<style>
+    body {padding: 0 10px;}
+</style>
+<!--插入主题样式-->
+<style></style>
+<!--插入marked转换后的html-->
+<div class="markdown-body"><h1 id="网易云音乐-api">网易云音乐 API</h1>
+<p>卧槽，为了搞一个express重装了整个nodejs...捏妈妈的</p>
+<p>网易云音乐 Node.js API service</p>
+<h2 id="灵感来自">灵感来自</h2>
+<p><a href="https://github.com/disoul/electron-cloud-music">disoul/electron-cloud-music</a></p>
+<p><a href="https://github.com/darknessomi/musicbox">darknessomi/musicbox</a></p>
+<p><a href="https://github.com/sqaiyan/netmusic-node">sqaiyan/netmusic-node</a></p>
+<p><a href="https://github.com/greats3an/pyncm">greats3an/pyncm</a></p>
+<h2 id="环境要求">环境要求</h2>
+<p>需要 NodeJS 8.12+ 环境</p>
+<h2 id="安装">安装</h2>
+<pre><code class="language-shell">$ git clone git@github.com:Binaryify/NeteaseCloudMusicApi.git
+$ cd NeteaseCloudMusicApi
+$ npm install
+</code></pre>
+<p>或者</p>
+<pre><code class="language-shell">$ git clone https://github.com/Binaryify/NeteaseCloudMusicApi.git
+$ cd NeteaseCloudMusicApi
+$ npm install
+</code></pre>
+<h2 id="运行">运行</h2>
+<p>调用前务必阅读文档的<code>调用前须知</code></p>
+<pre><code class="language-shell">$ node app.js
+</code></pre>
+<p>服务器启动默认端口为 3000,若不想使用 3000 端口,可使用以下命令: Mac/Linux</p>
+<pre><code class="language-shell">$ PORT=4000 node app.js
+</code></pre>
+<p>windows 下使用 git-bash 或者 cmder 等终端执行以下命令:</p>
+<pre><code class="language-shell">$ set PORT=4000 &amp;&amp; node app.js
+</code></pre>
+<h2 id="vercel-部署">Vercel 部署</h2>
+<p>v4.0.8 加入了 Vercel 配置文件,可以直接在 Vercel 下部署了,不需要自己的服务器</p>
+<h3 id="操作方法">操作方法</h3>
+<ol>
+<li>fork 此项目</li>
+<li>在 Vercel 官网点击 <code>New Project</code></li>
+<li>点击 <code>Import Git Repository</code> 并选择你 fork 的此项目并点击<code>import</code></li>
+<li>点击 <code>PERSONAL ACCOUNT</code> 的 <code>select</code></li>
+<li>直接点<code>Continue</code></li>
+<li><code>PROJECT NAME</code>自己填,<code>FRAMEWORK PRESET</code> 选 <code>Other</code> 然后直接点 <code>Deploy</code> 接着等部署完成即可</li>
+</ol>
+<h2 id="可以在nodejs调用">可以在Node.js调用</h2>
+<p>v3.31.0后支持Node.js调用,导入的方法为<code>module</code>内的文件名,返回内容包含<code>status</code>和<code>body</code>,<code>status</code>为状态码,<code>body</code>为请求返回内容,参考<code>module_example</code> 文件夹下的 <code>test.js</code></p>
+<pre><code class="language-js">const { login_cellphone, user_cloud } = require(&#39;NeteaseCloudMusicApi&#39;)
+async function main() {
+  try {
+    const result = await login_cellphone({
+      phone: &#39;手机号&#39;,
+      password: &#39;密码&#39;
+    })
+    console.log(result)
+    const result2 = await user_cloud({
+      cookie: result.body.cookie // 凭证
+    })
+    console.log(result2.body)
+      
+  } catch (error) {
+    console.log(error)
+  }
+}
+main()
+</code></pre>
+<h2 id="支持-typescript">支持 TypeScript</h2>
+<pre><code class="language-ts">// test.ts
+import { banner } from &#39;NeteaseCloudMusicApi&#39;
+banner({ type:0 }).then(res=&gt;{
+  console.log(res)
+})
+</code></pre>
+<h2 id="使用文档">使用文档</h2>
+<p><a href="https://binaryify.github.io/NeteaseCloudMusicApi">文档地址</a> </p>
+<p><a href="https://neteasecloudmusicapi.vercel.app">文档地址2</a></p>
+<p><img src="https://raw.githubusercontent.com/Binaryify/NeteaseCloudMusicApi/master/static/docs.png" alt="文档"></p>
+<h2 id="功能特性">功能特性</h2>
+<ol>
+<li>登录</li>
+<li>刷新登录</li>
+<li>发送验证码</li>
+<li>校验验证码</li>
+<li>注册(修改密码)</li>
+<li>获取用户信息 , 歌单，收藏，mv, dj 数量</li>
+<li>获取用户歌单</li>
+<li>获取用户电台</li>
+<li>获取用户关注列表</li>
+<li>获取用户粉丝列表</li>
+<li>获取用户动态</li>
+<li>获取用户播放记录</li>
+<li>获取精品歌单</li>
+<li>获取歌单详情</li>
+<li>搜索</li>
+<li>搜索建议</li>
+<li>获取歌词</li>
+<li>歌曲评论</li>
+<li>收藏单曲到歌单</li>
+<li>专辑评论</li>
+<li>歌单评论</li>
+<li>mv 评论</li>
+<li>电台节目评论</li>
+<li>banner</li>
+<li>获取歌曲详情</li>
+<li>获取专辑内容</li>
+<li>获取歌手单曲</li>
+<li>获取歌手 mv</li>
+<li>获取歌手专辑</li>
+<li>获取歌手描述</li>
+<li>获取相似歌手</li>
+<li>获取相似歌单</li>
+<li>相似 mv</li>
+<li>获取相似音乐</li>
+<li>获取最近 5 个听了这首歌的用户</li>
+<li>获取每日推荐歌单</li>
+<li>获取每日推荐歌曲</li>
+<li>私人 FM</li>
+<li>签到</li>
+<li>喜欢音乐</li>
+<li>垃圾桶</li>
+<li>歌单 ( 网友精选碟 )</li>
+<li>新碟上架</li>
+<li>热门歌手</li>
+<li>最新 mv</li>
+<li>推荐 mv</li>
+<li>推荐歌单</li>
+<li>推荐新音乐</li>
+<li>推荐电台</li>
+<li>推荐节目</li>
+<li>独家放送</li>
+<li>mv 排行</li>
+<li>获取 mv 数据</li>
+<li>播放 mv/视频</li>
+<li>排行榜</li>
+<li>歌手榜</li>
+<li>云盘</li>
+<li>电台 - 推荐</li>
+<li>电台 - 分类</li>
+<li>电台 - 分类推荐</li>
+<li>电台 - 订阅</li>
+<li>电台 - 详情</li>
+<li>电台 - 节目</li>
+<li>给评论点赞</li>
+<li>获取动态</li>
+<li>热搜列表(简略)</li>
+<li>发送私信</li>
+<li>发送私信歌单</li>
+<li>新建歌单</li>
+<li>收藏/取消收藏歌单</li>
+<li>歌单分类</li>
+<li>收藏的歌手列表</li>
+<li>订阅的电台列表</li>
+<li>相关歌单推荐</li>
+<li>付费精选接口</li>
+<li>音乐是否可用检查接口</li>
+<li>登录状态</li>
+<li>获取视频播放地址</li>
+<li>发送/删除评论</li>
+<li>热门评论</li>
+<li>视频评论</li>
+<li>退出登录</li>
+<li>所有榜单</li>
+<li>所有榜单内容摘要</li>
+<li>收藏视频</li>
+<li>收藏 MV</li>
+<li>视频详情</li>
+<li>相关视频</li>
+<li>关注用户</li>
+<li>新歌速递</li>
+<li>喜欢音乐列表(无序)</li>
+<li>收藏的 MV 列表</li>
+<li>获取最新专辑</li>
+<li>听歌打卡</li>
+<li>获取视频标签/分类下的视频</li>
+<li>已收藏专辑列表</li>
+<li>获取动态评论</li>
+<li>歌单收藏者列表</li>
+<li>云盘歌曲删除</li>
+<li>热门话题</li>
+<li>电台 - 推荐类型</li>
+<li>电台 - 非热门类型</li>
+<li>电台 - 今日优选</li>
+<li>心动模式/智能播放</li>
+<li>转发动态</li>
+<li>删除动态</li>
+<li>分享歌曲、歌单、mv、电台、电台节目到动态</li>
+<li>通知-私信</li>
+<li>通知-评论</li>
+<li>通知-@我</li>
+<li>通知-通知</li>
+<li>设置</li>
+<li>云盘数据详情</li>
+<li>私信内容</li>
+<li>我的数字专辑</li>
+<li>batch批量请求接口</li>
+<li>获取视频标签列表</li>
+<li>全部mv</li>
+<li>网易出品mv</li>
+<li>收藏/取消收藏专辑</li>
+<li>专辑动态信息</li>
+<li>热搜列表(详细)</li>
+<li>更换绑定手机</li>
+<li>检测手机号码是否已注册</li>
+<li>初始化昵称</li>
+<li>更新歌单描述</li>
+<li>更新歌单名</li>
+<li>更新歌单标签</li>
+<li>默认搜索关键词</li>
+<li>删除歌单</li>
+<li>电台banner</li>
+<li>用户电台</li>
+<li>热门电台</li>
+<li>电台 - 节目详情</li>
+<li>电台 - 节目榜</li>
+<li>电台 - 新晋电台榜/热门电台榜</li>
+<li>类别热门电台</li>
+<li>云村热评</li>
+<li>电台24小时节目榜</li>
+<li>电台24小时主播榜</li>
+<li>电台最热主播榜</li>
+<li>电台主播新人榜</li>
+<li>电台付费精品榜</li>
+<li>歌手热门50首歌曲</li>
+<li>购买数字专辑</li>
+<li>获取 mv 点赞转发评论数数据</li>
+<li>获取视频点赞转发评论数数据</li>
+<li>调整歌单顺序</li>
+<li>调整歌曲顺序</li>
+<li>独家放送列表</li>
+<li>获取推荐视频</li>
+<li>获取视频分类列表 </li>
+<li>获取全部视频列表接口</li>
+<li>获取历史日推可用日期列表</li>
+<li>获取历史日推详细数据</li>
+<li>国家编码列表</li>
+<li>首页-发现</li>
+<li>首页-发现-圆形图标入口列表</li>
+<li>数字专辑-全部新碟</li>
+<li>数字专辑-热门新碟</li>
+<li>数字专辑&amp;数字单曲-榜单</li>
+<li>数字专辑-语种风格馆</li>
+<li>数字专辑详情</li>
+<li>更新头像</li>
+<li>歌单封面上传</li>
+<li>楼层评论</li>
+<li>歌手全部歌曲</li>
+<li>精品歌单标签列表</li>
+<li>用户等级信息</li>
+<li>电台个性推荐</li>
+<li>用户绑定信息</li>
+<li>用户绑定手机</li>
+<li>新版评论</li>
+<li>点赞过的视频</li>
+<li>收藏视频到视频歌单</li>
+<li>删除视频歌单里的视频</li>
+<li>最近播放的视频</li>
+<li>音乐日历</li>
+<li>电台订阅者列表</li>
+<li>云贝签到信息</li>
+<li>云贝签到</li>
+<li>云贝所有任务</li>
+<li>云贝todo任务</li>
+<li>云贝今日签到信息</li>
+<li>云贝完成任务</li>
+<li>云贝收入</li>
+<li>云贝支出</li>
+<li>云贝账户信息</li>
+<li>账号信息</li>
+<li>最近联系人</li>
+<li>私信音乐</li>
+<li>抱一抱评论</li>
+<li>评论抱一抱列表</li>
+<li>收藏的专栏</li>
+<li>关注歌手新歌</li>
+<li>关注歌手新MV</li>
+<li>歌手详情</li>
+<li>云盘上传</li>
+<li>二维码登录</li>
+<li>话题详情</li>
+<li>话题详情热门动态</li>
+<li>歌单详情动态</li>
+<li>绑定手机</li>
+<li>一起听状态</li>
+<li>用户历史评论</li>
+<li>云盘歌曲信息匹配纠正</li>
+<li>云贝推歌</li>
+<li>云贝推歌历史记录</li>
+<li>已购单曲</li>
+<li>获取mlog播放地址</li>
+<li>将mlog id转为视频id</li>
+<li>vip成长值</li>
+<li>vip成长值获取记录</li>
+<li>vip任务</li>
+<li>领取vip成长值</li>
+<li>歌手粉丝</li>
+<li>数字专辑详情</li>
+<li>数字专辑销量</li>
+<li>音乐人数据概况</li>
+<li>音乐人播放趋势</li>
+<li>音乐人任务</li>
+<li>账号云豆数</li>
+<li>领取云豆</li>
+<li>获取 VIP 信息</li>
+<li>音乐人签到</li>
+<li>发送文本动态</li>
+<li>获取客户端歌曲下载 url</li>
+<li>获取歌单所有歌曲</li>
+<li>乐签信息</li>
+<li>最近播放-歌曲</li>
+<li>最近播放-视频</li>
+<li>最近播放-声音</li>
+<li>最近播放-歌单</li>
+<li>最近播放-专辑</li>
+<li>最近播放-播客</li>
+<li>签到进度</li>
+<li>重复昵称检测</li>
+<li>歌手粉丝数量</li>
+<li>音乐人任务(新)</li>
+<li>内部版本接口</li>
+<li>歌单更新播放量</li>
+</ol>
+<h2 id="更新日志">更新日志</h2>
+<p><a href="https://github.com/Binaryify/NeteaseCloudMusicApi/blob/master/CHANGELOG.MD">changelog</a></p>
+<h2 id="单元测试">单元测试</h2>
+<pre><code class="language-shell">$ npm test
+</code></pre>
+<p><img src="https://raw.githubusercontent.com/Binaryify/NeteaseCloudMusicApi/master/static/screenshot1.png" alt="单元测试">
+<img src="https://raw.githubusercontent.com/Binaryify/NeteaseCloudMusicApi/master/static/screenshot2.png" alt="单元测试"></p>
+<h2 id="sdk">SDK</h2>
+<table>
+<thead>
+<tr>
+<th align="center">语言</th>
+<th align="center">作者</th>
+<th align="center">地址</th>
+<th align="center">类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Java</td>
+<td align="center"><a href="https://github.com/JackuXL">JackuXL</a></td>
+<td align="center"><a href="https://github.com/JackuXL/NeteaseCloudMusicApi-SDK">https://github.com/JackuXL/NeteaseCloudMusicApi-SDK</a></td>
+<td align="center">第三方</td>
+</tr>
+<tr>
+<td align="center">Java</td>
+<td align="center"><a href="https://github.com/1015770492">1015770492</a></td>
+<td align="center"><a href="https://github.com/1015770492/yumbo-music-utils">https://github.com/1015770492/yumbo-music-utils</a></td>
+<td align="center">第三方</td>
+</tr>
+</tbody></table>
+<h2 id="贡献者">贡献者</h2>
+<p><img src="https://opencollective.com/NeteaseCloudMusicApi/contributors.svg?width=890" alt=""></p>
+<h2 id="license">License</h2>
+<p><a href="https://github.com/Binaryify/NeteaseCloudMusicApi/blob/master/LICENSE">The MIT License (MIT)</a></p>
+</div>
+</body>
+</html>
