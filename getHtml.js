@@ -47,7 +47,7 @@ const templateCompile = (template, data) => {
  */
 const md2html = ({ theme, inputPath, outputPath }) => {
     const themeStr = fs.readFileSync(`./html-component/${theme}.css`, 'utf-8')
-    const fileList = getFileList(inputPath)
+    const fileList = getFileList('./md')
     for (let i = 0; i < fileList.length; i++) {
         const item = fileList[i]
         const templateHtml = fs.readFileSync('./html-component/index.html')

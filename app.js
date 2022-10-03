@@ -2,11 +2,17 @@ const express = require("express");
 const images = require('./images')
 const sendHtml = require('./sendHtml')
 const transform = require('./getHtml')
+const acceptMd = require('./acceptMd')
 const path = require('path')
 const app = express()
 const fs = require("fs");
+
 const app2 = express()
-const cors = require('cors')
+const cors = require('cors')//配置跨源中间件
+app.use(express.urlencoded({ extended: false }))//配置解析post参数为url格式的的中间件，也可以去第三方下载
+app.use(express.json())//配置解析post参数为json格式的中间件
+
+
 app.use(cors())
 app.listen(3001, () => {
     console.log("3001端口已经开发了")
@@ -23,7 +29,6 @@ app.listen(3001, () => {
 //     images.articleImages(app)
 //     sendHtml.getHtmlCode(app)
 // })
-
 setInterval(() => {
     transform.md2html({
         theme: 'theme1',
@@ -33,6 +38,7 @@ setInterval(() => {
     images.ImagesUrls(app)
     images.articleImages(app)
     sendHtml.sendHtmlCode(app)
+    acceptMd.upload(app)
 
 }, 2000)
 
