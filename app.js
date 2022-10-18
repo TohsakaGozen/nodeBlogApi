@@ -1,58 +1,47 @@
 const express = require("express");
+const expressJWT = require('express-jwt')
+const config = require('./config')
 const images = require('./images')
 const sendHtml = require('./sendHtml')
 const transform = require('./getHtml')
 const acceptMd = require('./acceptMd')
+const register = require('./register')
+const login = require('./login')
 const path = require('path')
 const app = express()
 const fs = require("fs");
-
 const app2 = express()
-const cors = require('cors')//配置跨源中间件
+const cors = require('cors')
 app.use(express.urlencoded({ extended: false }))//配置解析post参数为url格式的的中间件，也可以去第三方下载
 app.use(express.json())//配置解析post参数为json格式的中间件
-
-
-app.use(cors())
+app.use(cors())//配置跨源中间件
 app.listen(3001, () => {
     console.log("3001端口已经开发了")
 })
 
-// fs.watch('md', { recursive: true }, (event, filename) => {
-//     console.log('该文件已增添')
-//     transform.md2html({
-//         theme: 'theme1',
-//         inputPath: path.resolve(__dirname, './md'),
-//         outputPath: path.resolve(__dirname, './output')
-//     })
-//     images.ImagesUrls(app)
-//     images.articleImages(app)
-//     sendHtml.getHtmlCode(app)
-// })
-setInterval(() => {
-    transform.md2html({
-        theme: 'theme1',
-        inputPath: path.resolve(__dirname, './md'),
-        outputPath: path.resolve(__dirname, './output')
-    })
-    images.ImagesUrls(app)
-    images.articleImages(app)
-    sendHtml.sendHtmlCode(app)
-    acceptMd.upload(app)
+transform.md2html({
+    theme: 'theme1',
+    inputPath: path.resolve(__dirname, './md'),
+    outputPath: path.resolve(__dirname, './output')
+})
 
-}, 2000)
-
-
-// transform.md2html({
-//     theme: 'theme1',
-//     inputPath: path.resolve(__dirname, './md'),
-//     outputPath: path.resolve(__dirname, './output')
-// })
-// images.ImagesUrls(app)
-// images.articleImages(app)
-// sendHtml.sendHtmlCode(app)
-
-
+images.articleImages(app)
+images.ImagesUrls(app)
+sendHtml.sendHtmlCode(app)
+console.log(111)
+register(app)
+login(app)
+app.use(expressJWT({ secret: config.jwtSecretkey }).unless({
+    method: ['GET']  // 指定get请求不经过 Token 解析
+}))//在需要验证token的路由前配置解析token中间件
+app.post('/checkToken', (req, res) => {
+    res.send({ status: 0, message: 'token在有效期内' })
+})
+acceptMd.upload(app)//上传文件时配置需要获取token才能上传
+app.use((err, req, res, next) => {//错误中间件
+    if (err.name === 'UnauthorizedError') return res.send({ status: 1, message: 'token或已过期,身份认证失败' })
+    return res.send({ status: 1, message: '未知错误' })
+})
 
 
 

@@ -4,7 +4,7 @@ const path = require('path')
 // 1.读取文件
 const getHtmlCode = function () {
     let htmlCode = []
-    fs.readdirSync('C:/Users/Tohsaka/Desktop/blogNode/output', 'utf8').forEach((files) => {
+    fs.readdirSync('./output', 'utf8').forEach((files) => {
         let data = fs.readFileSync(path.join(__dirname + '/output/' + files), 'utf8')
         let str = {
             title: '',
