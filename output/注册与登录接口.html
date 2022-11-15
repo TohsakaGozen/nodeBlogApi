@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--    文档标题-->
+    <title>注册与登录接口</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+</head>
+<body>
+<style>
+    body {padding: 0 10px;}
+</style>
+<!--插入主题样式-->
+<style></style>
+<!--插入marked转换后的html-->
+<div class="markdown-body"><h1 id="注册登录接口的实现思路">注册登录接口的实现思路</h1>
+<h4 id="注册接口">注册接口</h4>
+<h5 id="编写注册接口的大致流程">编写注册接口的大致流程</h5>
+<ol>
+<li>接受用户的注册数据:需要先使用以下中间件获得<code>req.body</code>数据(如果事先不配置将会获取不到body里的数据)</li>
+</ol>
+<pre><code>app.use(express.urlencoded({ extended: false }))//配置解析post参数为url格式的的中间件，也可以去第三方下载
+app.use(express.json())//配置解析post参数为json格式的中间件
+</code></pre>
+<ol start="2">
+<li>建立db文件夹连接数据库并配置数据库的连接池  </li>
+<li>将用户的注册数据与数据库里的已有数据进行对比校验，分别判断：<br>（1）注册的用户数据信息是否完整。不完整则<code>res.send({status:&quot;error&quot;,message:&#39;用户数据不完整&#39;})</code><br>（2）注册的用户名是否重复。若重复则<code>res.send({status:&quot;error&quot;,message:&#39;注册的用户名已被占用&#39;})</code>  </li>
+<li>若需要进行用户的密码加密后再存入数据库，则需要npm下载引入<code>bcryotjs</code>进行加密。本次项目的注册功能则并不需要加密功能(就我一个人用....)  </li>
+<li>若校验成功，则将校验成功的数据新增进数据库中：</li>
+</ol>
+<pre><code>const sqlstr2 = `insert into userinfo set ?`//注意包裹sql的是反引号即是模板字符串
+db.query(sqlstr2, req.body, (err, result) =&gt; {//将用户的注册数据写入数据库
+    if (err) {
+        return res.send({ status: 1, message: &#39;插入数据库连接错误&#39; })
+    }
+    if (result.affectedRows !== 1) {//判断是否有一行数据收到了影响
+        return res.send({ status: 1, message: &#39;注册用户失败&#39; })
+    }
+    res.send({ status: 0, message: &#39;注册成功&#39; })
+})
+</code></pre>
+<ol start="6">
+<li>此时数据库则已成功新增了用户的注册数据，即可向前端返回注册状态</li>
+</ol>
+<h4 id="登录接口">登录接口</h4>
+<h5 id="编写登录接口的大致流程">编写登录接口的大致流程</h5>
+<ol>
+<li>接受用户的登录数据，根据登陆数据的用户名查询数据库中的密码与登陆数据的密码是否一致（若密码加密则还需要<code>bcryotjs</code>进行解密）</li>
+<li>登陆数据正确则给用户返回数据库中的用户信息，还要根据除去密码的用户信息利用<code>jwtSecretkey</code>生成token</li>
+<li>生成token的具体步骤:  <ol>
+<li>导入<code>jsonwebtoken</code>包</li>
+<li>创建<code>config.js</code>文件，向外共享加密和还原token的<code>jwtsecretKey</code>字符串</li>
+</ol>
+<pre><code>module.exports = {
+    jwtSecretkey: &#39;tohsakagozen&#39;
+}
+</code></pre>
+<ol start="3">
+<li>将用户信息对象加密生成token字符串</li>
+</ol>
+<pre><code>const jwt = require(&#39;jsonwebtoken&#39;)
+const resToken = function (reqUserInfo, dbUserInfo) {
+    const user = { ...dbUserInfo, password: &#39;&#39; }
+    const tokenStr = jwt.sign(user, config.jwtSecretkey, { expiresIn: &#39;24h&#39; })//第三个参数为配置token的有效期
+    return tokenStr
+}
+</code></pre>
+</li>
+<li>将生成的token返回给前端后，前端再将token配置进headers中<pre><code>export const checkToken = () =&gt; request({
+    url: `/checkToken`, method: &#39;post&#39;, headers: {
+    &#39;Content-Type&#39;: &#39;multipart/form-data&#39;,
+    &#39;Authorization&#39;: `${store.state.loginAndRegister.token}`//token配置进请求头中
+    }
+})
+</code></pre>
+</li>
+<li>后端再接受到前端发送的token进行配置解析，需要用到<code>express-jwt@5.3.3</code>中间件(用npm安装)</li>
+<li>再在需要进行验证token才能使用的路由之前配置该中间件:<pre><code>app.use(expressJWT({ secret: config.jwtSecretkey }).unless({
+    method: [&#39;GET&#39;]  // 指定get请求不经过 Token 解析
+}))//在需要验证token的路由前配置解析token中间件
+app.post(&#39;/checkToken&#39;, (req, res) =&gt; {
+    res.send({ status: 0, message: &#39;token在有效期内&#39; })
+})
+acceptMd.upload(app)//上传文件时需要解析token才能上传
+app.use((err, req, res, next) =&gt; {//错误中间件，若token过期，则提示让用户重新登录获取新的token
+    if (err.name === &#39;UnauthorizedError&#39;) return res.send({ status: 1, message: &#39;token或已过期,身份认证失败&#39; })
+    return res.send({ status: 1, message: &#39;未知错误&#39; })
+})
+</code></pre>
+</li>
+<li>至此，一个简单的登录流程完成</li>
+</ol>
+</div>
+</body>
+</html>

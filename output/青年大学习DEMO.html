@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!--    文档标题-->
+    <title>青年大学习DEMO</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+</head>
+<body>
+<style>
+    body {padding: 0 10px;}
+</style>
+<!--插入主题样式-->
+<style></style>
+<!--插入marked转换后的html-->
+<div class="markdown-body"><h1 id="qq机器人发送青年大学习未完成名单demo">qq机器人发送青年大学习未完成名单demo</h1>
+<h6 id="基于mirai框架，mirai-http-api，miraijs，nodejs。">基于mirai框架，mirai-http-api，mirai.js，nodejs。</h6>
+<h5 id="使用说明：向qq机器人私聊发送指定命令-青年大学习，机器人则向指定班群里发送未完成名单。">使用说明：向qq机器人私聊发送指定命令-&quot;青年大学习&quot;，机器人则向指定班群里发送未完成名单。</h5>
+<h5 id="代码分为两个模块">代码分为两个模块</h5>
+<ol>
+<li>第一个是mirai.js的关于该功能的机器人逻辑判断模块，</li>
+<li>第二个是获取青年大学习未完成名单的模块。<ol>
+<li>该模块需要先安装引入axios-在终端键入<code>npm i axios</code></li>
+<li>引入axios后，则建立axios.post连接青年大学习的官方登录接口，需要发送账号密码的对象参数（账号和密码需向团支书获取）</li>
+</ol>
+<pre><code>let login = axios.create({
+    baseURL: &#39;http://dxx.scyol.com/backend/adminUser&#39;,
+    timeout: 60000,
+    headers: { &#39;Content-Type&#39;: &#39;application/json&#39; }
+});
+login({
+    url: `/login`, method: &#39;post&#39;, data: loginInfo
+})
+</code></pre>
+<ol start="3">
+<li>该接口会返回token，将该token保存后，继续根据post请求（需要将token配置进头信息<code>headers</code>中）官方的list接口获取当前青年大学习的期数和其它数据。</li>
+</ol>
+<pre><code>let reqStage = axios.create({
+    baseURL: &#39;http://dxx.scyol.com/backend/stages&#39;,
+    timeout: 60000
+});
+const userInfo = {
+    pageNo: 1,
+    pageSize: 500
+}
+let token = result.data.data.token//result是axios请求成功时得到的数据，为异步操作`Promise.then((result)=&gt;{})`
+
+reqStage({
+    url: `/list`, method: &#39;post&#39;, data: userInfo, headers: {
+        &#39;Content-Type&#39;: &#39;application/json;charset=UTF-8&#39;,
+        &#39;token&#39;: `${token}`,
+    }
+</code></pre>
+<ol start="4">
+<li>最后再根据获取到的期数，<code>orgId</code>，<code>page</code>等其他信息再post另一个list即可获取到已经完成了人的数据。</li>
+</ol>
+<pre><code>let reqDxxPeople = axios.create({
+    baseURL: &#39;http://dxx.scyol.com/backend/study/student&#39;,
+    timeout: 60000
+});
+const userInfo = {
+    name: &quot;&quot;,
+    orgId: 472431,
+    pageNo: 1,
+    pageSize: 100,
+    stagesId: result.data.paginator.total,//result是axios请求成功时得到的数据，为异步操作`Promise.then((result)=&gt;{})`
+    tel: &quot;&quot;
+}
+reqDxxPeople({
+    url: `/list`, method: &#39;post&#39;, data: userInfo, headers: {
+        &#39;Content-Type&#39;: &#39;application/json;charset=UTF-8&#39;,
+        &#39;token&#39;: `${token}`,
+    }
+})
+</code></pre>
+<ol start="5">
+<li>再将已完成的人员数据进行数据过滤只留下姓名元素。</li>
+<li>最后再将本班全体名字与已完成名单进行数据比对即可筛选出未完成名单。</li>
+</ol>
+<pre><code>let personInfo = result.data.data
+let personNames = []
+let undo = []
+personInfo.forEach(person =&gt; {
+    personNames.push(person.name)
+});
+classMates.forEach(person =&gt; {
+    if (personNames.indexOf(person) == -1) {
+        undo.push(person)
+    }
+})
+sendUndoPeople(undo)
+</code></pre>
+<ol start="7">
+<li>完成</li>
+</ol>
+</li>
+</ol>
+</div>
+</body>
+</html>

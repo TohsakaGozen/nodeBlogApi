@@ -37,7 +37,7 @@ app.use(expressJWT({ secret: config.jwtSecretkey }).unless({
 app.post('/checkToken', (req, res) => {
     res.send({ status: 0, message: 'token在有效期内' })
 })
-acceptMd.upload(app)//上传文件时配置需要获取token才能上传
+acceptMd.upload(app)//上传文件时配置需要解析token才能上传
 app.use((err, req, res, next) => {//错误中间件
     if (err.name === 'UnauthorizedError') return res.send({ status: 1, message: 'token或已过期,身份认证失败' })
     return res.send({ status: 1, message: '未知错误' })
