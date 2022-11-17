@@ -7,6 +7,7 @@ const transform = require('./getHtml')
 const acceptMd = require('./acceptMd')
 const register = require('./register')
 const login = require('./login')
+const comment = require('./comment')
 const path = require('path')
 const app = express()
 const fs = require("fs");
@@ -37,6 +38,7 @@ app.use(expressJWT({ secret: config.jwtSecretkey }).unless({
 app.post('/checkToken', (req, res) => {
     res.send({ status: 0, message: 'token在有效期内' })
 })
+comment(app)
 acceptMd.upload(app)//上传文件时配置需要解析token才能上传
 app.use((err, req, res, next) => {//错误中间件
     if (err.name === 'UnauthorizedError') return res.send({ status: 1, message: 'token或已过期,身份认证失败' })

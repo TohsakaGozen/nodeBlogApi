@@ -1,8 +1,5 @@
 const db = require('../db')
 
-
-
-
 const check = function (req, res) {
     if (!req.body.username || !req.body.password || !req.body.email) {
         res.send({ state: 1, message: '用户数据不完整' })
